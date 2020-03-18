@@ -2,6 +2,153 @@
 (require fsm)
 (require test-engine/racket-tests)
 
+; test-inputs: machine -> slist
+; Purpose: To generate the least amount of input words that test every node of a machine  
+(define (test-inputs m)
+  ; helper: machine test-words unfinished-words expanded-states
+  ; Purpose: To generate the least amount of input words that test every node of a machine 
+  ; ACCUM-INVS
+  ; t-words: tested words thus far
+  ; u-words: unfinished words thus far
+  ; e-states: expanded states thus far 
+  (define (helper t-words u-words e-states)
+
+    ; new-u-words: slist -> slist
+    ; Purpose: To update u-words accumulator
+    (define (new-u-words u-words)
+    
+      ; state (listof rules) -> (listof rules) 
+      ; finds all transitions with the given current state
+      (define (find-all-trans st)
+        (filter (lambda (x) (equal? st (car x))) (sm-getrules m)))
+    
+      (cond [(member (caar u-words) e-states) (cdr u-words)]
+            [else (map (lambda (rule) (list (caddr rule)
+                                            (append (cadar u-words) (list (cadr rule)))))
+                       (find-all-trans (caar u-words)))]))
+    
+    (cond [(null? u-words) t-words]
+          [(member (caar u-words) e-states) (helper (cons (cadar u-words) t-words) (cdr u-words) e-states)]
+          [else (helper (cons (cadar u-words) t-words)
+                        (append (cdr u-words) (new-u-words u-words))
+                        (cons (caar u-words) e-states))]))
+
+  (reverse (helper '() (list (list (sm-getstart m) '())) '())))
+          
+; sm-test2: machine -> slist
+; mock version of sm-test 
+(define (sm-test2 m)
+  (define (helper i m)
+    (list i (sm-apply m i)))
+  (map (lambda (x) (helper x m)) (remove-EMP (new-inputs (test-inputs m))))) 
+
+; new-inputs: slist -> slist
+; Purpose: To remove input words that are substrings of other input words in the list
+;          i.e. remove '(a) because it is a substring of '(a a) and '(a b a)
+(define (new-inputs loi)
+  (cond [(null? loi) '()]
+        [(null? (car loi)) (cons '() (new-inputs (cdr loi)))]
+        [(not (ormap (lambda (i) (equal? (car loi) (take i (length (car loi))))) (cdr loi)))
+         (cons (car loi) (new-inputs (cdr loi)))]
+        [else (new-inputs (cdr loi))]))
+
+(check-expect (new-inputs '(() (a) (b) (a a) (a b) (b a) (b b) (a b a) (a b b)))
+              '(() (a a) (b a) (b b) (a b a) (a b b)))
+(check-expect (new-inputs (test-inputs a-bc*-d))
+              '(() (c) (d) (a b) (a c) (a a) (b a) (b b) (b c) (b d) (a d a) (a d b) (a d c) (a d d)))
+
+; remove-EMP: (listof inputs) -> (listof inputs)
+; Purpose: To remove e from test inputs
+(define (remove-EMP loi)
+  (map (λ (x) (if (member 'e x) (remove 'e x) x)) loi))
+
+(check-expect (remove-EMP '(() (a e) (a b e))) '(() (a) (a b)))
+(check-expect (remove-EMP '(() (a) (b) (a b e))) '(() (a) (b) (a b)))
+
+; generate-dfa-tests: dfa --> (listof word)
+; Purpose: To generate the words needed to test every state of the given dfa
+(define (generate-dfa-tests dfa)
+  (new-inputs (test-inputs dfa)))
+
+(check-expect (generate-dfa-tests TEST-MACHINE)
+              '(() (a a) (b a) (b b) (a b a) (a b b)))
+(check-expect (generate-dfa-tests a-bc*-d)
+              '(() (c) (d) (a b) (a c) (a a) (b a) (b b) (b c) (b d) (a d a) (a d b) (a d c) (a d d)))
+(check-expect (generate-dfa-tests STATES)
+              '(() (a b) (b a) (a a a) (a a b) (b b a) (b b b)))
+(check-expect (generate-dfa-tests ALPHA)
+              '(() (a) (b) (c a) (c b) (c c a) (c c b) (c c c)))
+(check-expect (generate-dfa-tests DEAD)
+              '(() (b a) (b b) (a a a) (a a b) (a b a) (a b b)))
+
+; generate-ndfa-tests: ndfa --> (listof word)
+; Purpose: To generate the words needed to test every state of the given dfa
+(define (generate-ndfa-tests ndfa)
+  (remove-EMP (new-inputs (test-inputs ndfa))))
+
+(check-expect (generate-ndfa-tests KLEENESTAR-abUaba)
+              '(() (a b) (a b a)))
+(check-expect (generate-ndfa-tests AT-LEAST-ONE-MISSING)
+              '(() (c) (a) (b)))
+(check-expect (generate-ndfa-tests A)
+              '(() (a)))
+(check-expect (generate-ndfa-tests B)
+              '(() (b)))
+
+;; get-pda-rule: processed-list -> pda-rule
+;; Purpose: Determins if the rule to be made should be empty or a real rule
+(define (get-pda-rule processed-list)
+  (cond
+    [(< (length processed-list) 2)  '((empty empty empty) (empty empty))]
+    [else (construct-pda-rule processed-list)]))
+
+;; construct-pda-rule: processed-list -> pda-rule
+;; Purpose: Constructes a pda rule from the given processed list
+(define (construct-pda-rule pl)
+  (letrec (
+           (next-state (caar pl)) ;; The initial state that the machine is in
+           (init-state (caadr pl)) ;; The state that the machien ends in
+           (next-input (cadar pl)) ;; The initial state's input
+           (init-input (cadadr pl)) ;; The state that the machien ends in input
+           (next-stack (caddar pl)) ;; The elemetns that are on the init stack
+           (sec (cadr pl))  ;; The second list in the stack
+           (init-stack (caddr sec)) ;; The elements that are on the next stack
+
+           ;; take*: Integer List -> List or symbol
+           ;; Purpose: functions the same as Racket's take function except if the list
+           ;;   result of take is the empty list then 'e is returned instead
+           (take* (lambda (num a-list)
+                    (let ((t (take a-list num)))
+                      (if (empty? t) 'e t))))
+
+           ;; determine-consumed: none -> symbol
+           ;; Purpose: determins what the input is that is consumed
+           (determin-consumed (lambda ()
+                                (cond
+                                  ;; If both inputs are equal then nothing was consumed
+                                  [(equal? init-input next-input)'e]
+                                  [else (car init-input)])))
+
+           ;; determin-pushed: none -> integer
+           ;; Purpose: Returns the number of elements that have been pushed on the stack
+           (determin-pushed (lambda ()
+                              (let ((num (- (length next-stack) (length init-stack))))
+                                (if (< num 0) 0 num))))
+
+           ;; determin-poped: none -> integer
+           ;; Purpose: Returns the number of elements that have been poped off the stack
+           (determin-poped (lambda ()
+                             (let ((num (- (length init-stack) (length next-stack))))
+                               (if (< num 0) 0 num)))))
+
+    (cond
+      ;; If there is less then 2 elements then we are at the ed so return the default
+      [(< (length pl) 2) '((empty empty empty) (empty empty))]
+      [else
+       (list
+        (list init-state (determin-consumed) (take* (determin-poped) init-stack))
+        (list next-state (take* (determin-pushed) next-stack)))])))
+
 (define TEST-MACHINE
   (make-dfa
    '(A B C D)
@@ -182,151 +329,5 @@
                                     ((M a (b)) (M ,EMP))
                                     ((M b (a)) (M ,EMP)))))
 
-; test-inputs: machine -> slist
-; Purpose: To generate the least amount of input words that test every node of a machine  
-(define (test-inputs m)
-  ; helper: machine test-words unfinished-words expanded-states
-  ; Purpose: To generate the least amount of input words that test every node of a machine 
-  ; ACCUM-INVS
-  ; t-words: tested words thus far
-  ; u-words: unfinished words thus far
-  ; e-states: expanded states thus far 
-  (define (helper t-words u-words e-states)
-
-    ; new-u-words: slist -> slist
-    ; Purpose: To update u-words accumulator
-    (define (new-u-words u-words)
-    
-      ; state (listof rules) -> (listof rules) 
-      ; finds all transitions with the given current state
-      (define (find-all-trans st)
-        (filter (lambda (x) (equal? st (car x))) (sm-getrules m)))
-    
-      (cond [(member (caar u-words) e-states) (cdr u-words)]
-            [else (map (lambda (rule) (list (caddr rule)
-                                            (append (cadar u-words) (list (cadr rule)))))
-                       (find-all-trans (caar u-words)))]))
-    
-    (cond [(null? u-words) t-words]
-          [(member (caar u-words) e-states) (helper (cons (cadar u-words) t-words) (cdr u-words) e-states)]
-          [else (helper (cons (cadar u-words) t-words)
-                        (append (cdr u-words) (new-u-words u-words))
-                        (cons (caar u-words) e-states))]))
-
-  (reverse (helper '() (list (list (sm-getstart m) '())) '())))
-          
-; sm-test2: machine -> slist
-; mock version of sm-test 
-(define (sm-test2 m)
-  (define (helper i m)
-    (list i (sm-apply m i)))
-  (map (lambda (x) (helper x m)) (remove-EMP (new-inputs (test-inputs m))))) 
-
-; new-inputs: slist -> slist
-; Purpose: To remove input words that are substrings of other input words in the list
-;          i.e. remove '(a) because it is a substring of '(a a) and '(a b a)
-(define (new-inputs loi)
-  (cond [(null? loi) '()]
-        [(null? (car loi)) (cons '() (new-inputs (cdr loi)))]
-        [(not (ormap (lambda (i) (equal? (car loi) (take i (length (car loi))))) (cdr loi)))
-         (cons (car loi) (new-inputs (cdr loi)))]
-        [else (new-inputs (cdr loi))]))
-
-(check-expect (new-inputs '(() (a) (b) (a a) (a b) (b a) (b b) (a b a) (a b b)))
-              '(() (a a) (b a) (b b) (a b a) (a b b)))
-(check-expect (new-inputs (test-inputs a-bc*-d))
-              '(() (c) (d) (a b) (a c) (a a) (b a) (b b) (b c) (b d) (a d a) (a d b) (a d c) (a d d)))
-
-; remove-EMP: (listof inputs) -> (listof inputs)
-; Purpose: To remove e from test inputs
-(define (remove-EMP loi)
-  (map (λ (x) (if (member 'e x) (remove 'e x) x)) loi))
-
-(check-expect (remove-EMP '(() (a e) (a b e))) '(() (a) (a b)))
-(check-expect (remove-EMP '(() (a) (b) (a b e))) '(() (a) (b) (a b)))
-
-; generate-dfa-tests: dfa --> (listof word)
-; Purpose: To generate the words needed to test every state of the given dfa
-(define (generate-dfa-tests dfa)
-  (new-inputs (test-inputs dfa)))
-
-(check-expect (generate-dfa-tests TEST-MACHINE)
-              '(() (a a) (b a) (b b) (a b a) (a b b)))
-(check-expect (generate-dfa-tests a-bc*-d)
-              '(() (c) (d) (a b) (a c) (a a) (b a) (b b) (b c) (b d) (a d a) (a d b) (a d c) (a d d)))
-(check-expect (generate-dfa-tests STATES)
-              '(() (a b) (b a) (a a a) (a a b) (b b a) (b b b)))
-(check-expect (generate-dfa-tests ALPHA)
-              '(() (a) (b) (c a) (c b) (c c a) (c c b) (c c c)))
-(check-expect (generate-dfa-tests DEAD)
-              '(() (b a) (b b) (a a a) (a a b) (a b a) (a b b)))
-
-; generate-ndfa-tests: ndfa --> (listof word)
-; Purpose: To generate the words needed to test every state of the given dfa
-(define (generate-ndfa-tests ndfa)
-  (remove-EMP (new-inputs (test-inputs ndfa))))
-
-(check-expect (generate-ndfa-tests KLEENESTAR-abUaba)
-              '(() (a b) (a b a)))
-(check-expect (generate-ndfa-tests AT-LEAST-ONE-MISSING)
-              '(() (c) (a) (b)))
-(check-expect (generate-ndfa-tests A)
-              '(() (a)))
-(check-expect (generate-ndfa-tests B)
-              '(() (b)))
-
-;; get-pda-rule: processed-list -> pda-rule
-;; Purpose: Determins if the rule to be made should be empty or a real rule
-(define (get-pda-rule processed-list)
-  (cond
-    [(< (length processed-list) 2)  '((empty empty empty) (empty empty))]
-    [else (construct-pda-rule processed-list)]))
-
-;; construct-pda-rule: processed-list -> pda-rule
-;; Purpose: Constructes a pda rule from the given processed list
-(define (construct-pda-rule pl)
-  (letrec (
-           (next-state (caar pl)) ;; The initial state that the machine is in
-           (init-state (caadr pl)) ;; The state that the machien ends in
-           (next-input (cadar pl)) ;; The initial state's input
-           (init-input (cadadr pl)) ;; The state that the machien ends in input
-           (next-stack (caddar pl)) ;; The elemetns that are on the init stack
-           (sec (cadr pl))  ;; The second list in the stack
-           (init-stack (caddr sec)) ;; The elements that are on the next stack
-
-           ;; take*: Integer List -> List or symbol
-           ;; Purpose: functions the same as Racket's take function except if the list
-           ;;   result of take is the empty list then 'e is returned instead
-           (take* (lambda (num a-list)
-                    (let ((t (take a-list num)))
-                      (if (empty? t) 'e t))))
-
-           ;; determine-consumed: none -> symbol
-           ;; Purpose: determins what the input is that is consumed
-           (determin-consumed (lambda ()
-                                (cond
-                                  ;; If both inputs are equal then nothing was consumed
-                                  [(equal? init-input next-input)'e]
-                                  [else (car init-input)])))
-
-           ;; determin-pushed: none -> integer
-           ;; Purpose: Returns the number of elements that have been pushed on the stack
-           (determin-pushed (lambda ()
-                              (let ((num (- (length next-stack) (length init-stack))))
-                                (if (< num 0) 0 num))))
-
-           ;; determin-poped: none -> integer
-           ;; Purpose: Returns the number of elements that have been poped off the stack
-           (determin-poped (lambda ()
-                             (let ((num (- (length init-stack) (length next-stack))))
-                               (if (< num 0) 0 num)))))
-
-    (cond
-      ;; If there is less then 2 elements then we are at the ed so return the default
-      [(< (length pl) 2) '((empty empty empty) (empty empty))]
-      [else
-       (list
-        (list init-state (determin-consumed) (take* (determin-poped) init-stack))
-        (list next-state (take* (determin-pushed) next-stack)))])))
 
 (test)
