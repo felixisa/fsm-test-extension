@@ -224,6 +224,22 @@
      (ds a ds)
      (ds b ds))))
 
+(define EVEN-NUM-B
+  (make-dfa '(Q0 Q1)
+            '(a b)
+            'Q0
+            '(Q0)
+            '((Q0 a Q0)
+              (Q0 b Q1)
+              (Q1 a Q1)
+              (Q1 b Q0))))
+
+(define (Q-0-INV consumed-input)
+  (even? (length (filter (λ (a) (eq? a 'b)) consumed-input))))
+
+(define (Q-1-INV consumed-input)
+  (odd? (length (filter (λ (a) (eq? a 'b)) consumed-input))))
+
 (define bad-or-dad
   (make-dfa '(Q0 Q1 Q2 Q3 Q4 Q5 Q6)
             '(a b d)
@@ -295,13 +311,13 @@
 
 ;; valid input: aaabbb 
 (define P (make-ndpda '(S F)
-                     '(a b)
-                     '(c)
-                     'S
-                     '(F)
-                     `(((S ,EMP ,EMP) (F ,EMP))
-                       ((F a ,EMP) (F (c)))
-                       ((F b (c)) (F ,EMP)))))
+                      '(a b)
+                      '(c)
+                      'S
+                      '(F)
+                      `(((S ,EMP ,EMP) (F ,EMP))
+                        ((F a ,EMP) (F (c)))
+                        ((F b (c)) (F ,EMP)))))
 
 ; valid input: aabcbaa
 (define pda-wcw^r (make-ndpda '(S M N F)                  ;the states
