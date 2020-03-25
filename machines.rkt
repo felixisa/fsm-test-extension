@@ -298,3 +298,22 @@
                                     ((M a (b)) (M ,EMP))
                                     ((M b (a)) (M ,EMP)))))
 
+(define (S-INV ci s) (and (empty? ci) (empty? s)))
+
+(define (M-INV ci s)
+  (and (or (andmap (λ (k) (eq? k 'a)) s)
+           (andmap (λ (k) (eq? k 'b)) s))
+       (implies (empty? s)
+                (= (length (filter (λ (k) (eq? k ‘a)) ci))
+                   (length (filter (λ (k) (eq? k ‘b)) ci))))
+       (implies (not (empty? s))
+                (and (implies (eq? (first s) ‘a)
+                              (= (- (length (filter (λ (k) (eq? k ‘a)) ci)) (length s))
+                                 (length (filter (λ (k) (eq? k 'b)) ci))))
+                     (implies (eq? (first s) ‘b)
+                              (= (- (length (filter (λ (k) (eq? k 'b)) ci)) (length s))
+                                 (length (filter (λ (k) (eq? k 'a)) ci))))))))
+
+(define (F-INV ci s)
+  (= (length (filter (λ (k) (eq? k 'a)) ci))
+     (length (filter (λ (k) (eq? k 'b)) ci))))
