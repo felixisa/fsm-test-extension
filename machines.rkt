@@ -286,6 +286,39 @@
                                 ((N b (b)) (N ,EMP))
                                 ((N ,EMP ,EMP) (F ,EMP)))))
 
+(define (S-INV ci s)
+  (and (empty? ci) (empty? s)))
+
+(define (M1-INV ci s)
+  (and (not (member 'c ci)) (equal? ci (reverse s))))
+
+(define (beforec lst)
+  (if (eq? (car lst) 'c)
+      '()
+      (cons (car lst) (beforec (cdr lst)))))
+
+(define (afterc lst)
+  (if (eq? (car lst) 'c)
+      (cdr lst)
+      (afterc (cdr lst))))
+
+(define (M2-INV ci s)
+    (and (member 'c ci)                            ; c in ci
+       (let [(bc (beforec ci))
+             (ac (afterc ci))
+             (rs (reverse s))]
+         (and (equal? (take bc (length rs)) rs)    ; n stack elements match first n ci elements
+              (= (length (append s ac))
+                 (length bc))
+              (equal? (reverse ac)                 ; popped elements (after c) match the end of ci
+                      (take-right bc (length ac)))))))
+
+
+(define (F-INV ci s)
+  (and (member 'c ci)
+       (and (equal? (beforec ci) (reverse (afterc ci))))))
+
+
 (define pda-numa=numb (make-ndpda '(S M F)
                                   '(a b)
                                   '(a b)
@@ -298,22 +331,22 @@
                                     ((M a (b)) (M ,EMP))
                                     ((M b (a)) (M ,EMP)))))
 
-(define (S-INV ci s) (and (empty? ci) (empty? s)))
+(define (s-INV ci s) (and (empty? ci) (empty? s)))
 
 (define (M-INV ci s)
   (and (or (andmap (λ (k) (eq? k 'a)) s)
            (andmap (λ (k) (eq? k 'b)) s))
        (implies (empty? s)
-                (= (length (filter (λ (k) (eq? k ‘a)) ci))
-                   (length (filter (λ (k) (eq? k ‘b)) ci))))
+                (= (length (filter (λ (k) (eq? k `a)) ci))
+                   (length (filter (λ (k) (eq? k `b)) ci))))
        (implies (not (empty? s))
-                (and (implies (eq? (first s) ‘a)
-                              (= (- (length (filter (λ (k) (eq? k ‘a)) ci)) (length s))
+                (and (implies (eq? (first s) `a)
+                              (= (- (length (filter (λ (k) (eq? k `a)) ci)) (length s))
                                  (length (filter (λ (k) (eq? k 'b)) ci))))
-                     (implies (eq? (first s) ‘b)
+                     (implies (eq? (first s) `b)
                               (= (- (length (filter (λ (k) (eq? k 'b)) ci)) (length s))
                                  (length (filter (λ (k) (eq? k 'a)) ci))))))))
 
-(define (F-INV ci s)
+(define (f-INV ci s)
   (= (length (filter (λ (k) (eq? k 'a)) ci))
      (length (filter (λ (k) (eq? k 'b)) ci))))
