@@ -18,6 +18,25 @@
      (C a C)
      (C b C))))
 
+(define (A-INV ci)
+  (or (null? ci)
+      (even? (length (filter (lambda (i) (equal? i 'a)) ci)))))
+
+(define (B-INV ci)
+  (and (andmap (lambda (i) (equal? i 'a)) ci)
+       (odd? (length (filter (lambda (i) (equal? i 'a)) ci))))) 
+
+(define (C-INV ci)
+  (and (>= (length ci))
+       (or (equal? (take-right ci 1) 'a)
+           (equal? (take-right ci 1) 'b))))
+
+(define (D-INV ci)
+  (or (and (= (length ci) 1)
+           (equal? (car ci) 'b))
+      (and (equal? (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
+           (equal? (take-right ci 1) 'a))))
+
 (define a-bc*-d
   (make-dfa '(Q0 Q1 Q2)
             '(a b c d)
@@ -245,13 +264,13 @@
 
 ;; valid input: aaabbb 
 (define P (make-ndpda '(S F)
-                     '(a b)
-                     '(c)
-                     'S
-                     '(F)
-                     `(((S ,EMP ,EMP) (F ,EMP))
-                       ((F a ,EMP) (F (c)))
-                       ((F b (c)) (F ,EMP)))))
+                      '(a b)
+                      '(c)
+                      'S
+                      '(F)
+                      `(((S ,EMP ,EMP) (F ,EMP))
+                        ((F a ,EMP) (F (c)))
+                        ((F b (c)) (F ,EMP)))))
 
 ; valid input: aabcbaa
 (define pda-wcw^r (make-ndpda '(S M N F)                  ;the states
