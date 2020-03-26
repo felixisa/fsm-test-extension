@@ -62,6 +62,7 @@
          (error (format "Q0-INV failed for ~s" '(b b)))]
         [else #t]))
 
+;------------------------------------------------------ 
 
 (define TEST-MACHINE
   (make-dfa
