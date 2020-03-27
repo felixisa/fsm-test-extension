@@ -170,4 +170,60 @@
          (error (format "C-INV failed for ~s" '(a b b)))]
         [else #t]))
 
+; takes as input the list of test words, a (listof (state predicate)),
+; and a machine and that returns true if for all words the predicates hold.
+; Otherwise, it returns the strings and states fir which a predicate fails.
+
+(define (INVS-HOLD-input machine)
+  (map (lambda (i) (cdr (reverse (sm-showtransitions machine i)))) (generate-dfa-tests machine)))
+
+;--------------------------------------------------------------------------------
+; test-inputs: machine -> slist
+; Purpose: To generate the least amount of input words that test every node of a machine  
+(define (test-inputs m)
+  ; helper: machine test-words unfinished-words expanded-states
+  ; Purpose: To generate the least amount of input words that test every node of a machine 
+  ; ACCUM-INVS
+  ; t-words: tested words thus far
+  ; u-words: unfinished words thus far
+  ; e-states: expanded states thus far 
+  (define (helper t-words u-words e-states)
+
+    ; new-u-words: slist -> slist
+    ; Purpose: To update u-words accumulator
+    (define (new-u-words u-words)
+    
+      ; state (listof rules) -> (listof rules) 
+      ; finds all transitions with the given current state
+      (define (find-all-trans st)
+        (filter (lambda (x) (equal? st (car x))) (sm-getrules m)))
+    
+      (cond [(member (caar u-words) e-states) (cdr u-words)]
+            [else (map (lambda (rule) (list (caddr rule)
+                                            (append (cadar u-words) (list (cadr rule)))))
+                       (find-all-trans (caar u-words)))]))
+    
+    (cond [(null? u-words) t-words]
+          [(member (caar u-words) e-states) (helper (cons (cadar u-words) t-words) (cdr u-words) e-states)]
+          [else (helper (cons (cadar u-words) t-words)
+                        (append (cdr u-words) (new-u-words u-words))
+                        (cons (caar u-words) e-states))]))
+
+  (reverse (helper '() (list (list (sm-getstart m) '())) '())))
+          
+
+; new-inputs: slist -> slist
+; Purpose: To remove input words that are substrings of other input words in the list
+;          i.e. remove '(a) because it is a substring of '(a a) and '(a b a)
+(define (new-inputs loi)
+  (cond [(null? loi) '()]
+        [(null? (car loi)) (cons '() (new-inputs (cdr loi)))]
+        [(not (ormap (lambda (i) (equal? (car loi) (take i (length (car loi))))) (cdr loi)))
+         (cons (car loi) (new-inputs (cdr loi)))]
+        [else (new-inputs (cdr loi))]))
+
+; generate-dfa-tests: dfa --> (listof word)
+; Purpose: To generate the words needed to test every state of the given dfa
+(define (generate-dfa-tests dfa)
+  (new-inputs (test-inputs dfa)))
 (test) 
