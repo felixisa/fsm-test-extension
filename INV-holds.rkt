@@ -79,23 +79,23 @@
      (C a C)
      (C b C))))
 
-(define (A-INV ci)
-  (even? (length (filter (lambda (i) (equal? i 'a)) ci))))
+(define (A-INV)
+  (lambda (ci) (even? (length (filter (lambda (i) (equal? i 'a)) ci)))))
 
-(define (B-INV ci)
-  (and (andmap (lambda (i) (equal? i 'a)) ci)
-       (odd? (length (filter (lambda (i) (equal? i 'a)) ci))))) 
+(define (B-INV)
+  (lambda (ci) (and (andmap (lambda (i) (equal? i 'a)) ci)
+                    (odd? (length (filter (lambda (i) (equal? i 'a)) ci)))))) 
 
-(define (C-INV ci)
-  (and (>= (length ci))
-       (or (equal? (take-right ci 1) '(a))
-           (equal? (take-right ci 1) '(b)))))
+(define (C-INV)
+  (lambda (ci) (and (>= (length ci))
+                    (or (equal? (take-right ci 1) '(a))
+                        (equal? (take-right ci 1) '(b))))))
 
-(define (D-INV ci)
-  (or (and (= (length ci) 1)
-           (equal? (car ci) 'b))
-      (and (= (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
-           (equal? (take-right ci 1) '(a)))))
+(define (D-INV)
+  (lambda (ci) (or (and (= (length ci) 1)
+                        (equal? (car ci) 'b))
+                   (and (= (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
+                        (equal? (take-right ci 1) '(a))))))
 
 ; '(() (a a) (b a) (b b) (a b a) (a b b))
 
@@ -172,11 +172,38 @@
 
 ; takes as input the list of test words, a (listof (state predicate)),
 ; and a machine and that returns true if for all words the predicates hold.
-; Otherwise, it returns the strings and states fir which a predicate fails.
+; Otherwise, it returns the strings and states for which a predicate fails.
 
-(define (INVS-HOLD-input machine)
-  (map (lambda (i) (cdr (reverse (sm-showtransitions machine i)))) (generate-dfa-tests machine)))
+(define (INVS-HOLD tw losp m)
+  
+  (define loi (map (lambda (i) (cdr (reverse (sm-showtransitions m i)))) tw))
+  
+  (define (helper1 l failed)
+    
+    (define (helper2 L losp)
+      (cond [(null? L) #t]
+            [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
+             #f]
+            ; (format "~s-INV failed for ~s" (caar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))]
+            [else (helper2 (cdr L) losp)]))
+    
+    (cond [(null? l) failed]
+          [(helper2 (car l) losp) (helper1 (cdr l) failed)]
+          [else (helper1 (cdr l) (cons (car l) failed))]))
 
+  (helper1 loi '()))
+
+(define L1 (list (list 'A (A-INV))
+                 (list 'B (B-INV))
+                 (list 'C (C-INV))
+                 (list 'D (D-INV))))
+
+(define (helper2 L losp)
+  (cond [(symbol? (car L)) #t]
+        [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
+         #f]
+        ; (format "~s-INV failed for ~s" (caar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))]
+        [else (helper2 (cdr L) losp)]))
 ;--------------------------------------------------------------------------------
 ; test-inputs: machine -> slist
 ; Purpose: To generate the least amount of input words that test every node of a machine  
