@@ -79,19 +79,19 @@
      (C a C)
      (C b C))))
 
-(define (A-INV)
+(define A-INV
   (lambda (ci) (even? (length (filter (lambda (i) (equal? i 'a)) ci)))))
 
-(define (B-INV)
+(define B-INV
   (lambda (ci) (and (andmap (lambda (i) (equal? i 'a)) ci)
                     (odd? (length (filter (lambda (i) (equal? i 'a)) ci)))))) 
 
-(define (C-INV)
+(define C-INV
   (lambda (ci) (and (>= (length ci))
                     (or (equal? (take-right ci 1) '(a))
                         (equal? (take-right ci 1) '(b))))))
 
-(define (D-INV)
+(define D-INV
   (lambda (ci) (or (and (= (length ci) 1)
                         (equal? (car ci) 'b))
                    (and (= (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
@@ -179,7 +179,7 @@
   (define loi (map (lambda (i) (cdr (reverse (sm-showtransitions m i)))) tw))
   
   (define (helper1 l failed)
-    
+    (begin (println failed)
     (define (helper2 L losp)
       (cond [(null? L) #t]
             [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
@@ -189,17 +189,17 @@
     
     (cond [(null? l) failed]
           [(helper2 (car l) losp) (helper1 (cdr l) failed)]
-          [else (helper1 (cdr l) (cons (car l) failed))]))
+          [else (helper1 (cdr l) (cons (car l) failed))])))
 
-  (helper1 loi '()))
+  (helper1 loi '())) 
 
-(define L1 (list (list 'A (A-INV))
-                 (list 'B (B-INV))
-                 (list 'C (C-INV))
-                 (list 'D (D-INV))))
+(define L1 (list (list 'A A-INV)
+                 (list 'B B-INV)
+                 (list 'C C-INV)
+                 (list 'D D-INV)))
 
 (define (helper2 L losp)
-  (cond [(symbol? (car L)) #t]
+  (cond [(null? L) #t]
         [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
          #f]
         ; (format "~s-INV failed for ~s" (caar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))]
