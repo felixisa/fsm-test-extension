@@ -1,7 +1,5 @@
 #lang racket
-(require fsm)
-(require test-engine/racket-tests)
-(require "better-sm-test.rkt")
+(require fsm test-engine/racket-tests "better-sm-test.rkt" "dfas.rkt")
 
 ; generate-dfa-tests: dfa --> (listof word)
 ; Purpose: To generate the words needed to test every state of the given dfa
@@ -16,8 +14,6 @@
               '(() (a b) (b a) (a a a) (a a b) (b b a) (b b b)))
 (check-expect (generate-dfa-tests ALPHA)
               '(() (a) (b) (c a) (c b) (c c a) (c c b) (c c c)))
-(check-expect (generate-dfa-tests DEAD)
-              '(() (b a) (b b) (a a a) (a a b) (a b a) (a b b)))
 
 
 

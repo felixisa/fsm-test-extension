@@ -1,7 +1,5 @@
 #lang racket
-(require fsm)
-(require test-engine/racket-tests)
-(require "better-sm-test.rkt")
+(require fsm test-engine/racket-tests "better-sm-test.rkt")
 
 ; takes as input the list of test words, a (listof (state predicate)),
 ; and a machine and that returns true if for all words the predicates hold.

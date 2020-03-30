@@ -1,9 +1,9 @@
 #lang racket
 (require fsm)
-(provide KLEENESTAR-abUaba)
-(provide AT-LEAST-ONE-MISSING)
-(provide A)
-(provide B)
+(provide KLEENESTAR-abUaba
+         AT-LEAST-ONE-MISSING
+         A
+         B)
 
 (define KLEENESTAR-abUaba
   (make-ndfa '(Q0 Q1 Q2 Q3 Q4 Q5)

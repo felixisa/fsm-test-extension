@@ -1,7 +1,5 @@
 #lang racket
-(require fsm)
-(require test-engine/racket-tests)
-(require "better-sm-test.rkt")
+(require fsm test-engine/racket-tests "better-sm-test.rkt" "pdas.rkt")
 
 ;; get-pda-rule: processed-list -> pda-rule
 ;; Purpose: Determins if the rule to be made should be empty or a real rule

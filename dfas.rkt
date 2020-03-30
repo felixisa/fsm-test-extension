@@ -1,18 +1,16 @@
 #lang racket
-(require fsm)
-(require test-engine/racket-tests)
-(provide TEST-MACHINE)
-(provide a-bc*-d)
-(provide STATES)
-(provide ALPHA)
-(provide DEAD)
-(provide bad-or-dad)
-(provide b*aab)
-(provide abab*)
-(provide ab*)
-(provide a*bb)
-(provide abUba)
-(provide EVEN-NUM-B)
+(require fsm test-engine/racket-tests)
+(provide TEST-MACHINE
+         a-bc*-d
+         STATES
+         ALPHA
+         bad-or-dad
+         b*aab
+         abab*
+         ab*
+         a*bb
+         abUba
+         EVEN-NUM-B)
 
 (define TEST-MACHINE
   (make-dfa
@@ -71,23 +69,6 @@
      (C a C)
      (C b C)
      (C c C))))
-
-(define DEAD
-  (make-dfa
-   '(A B C D ds)
-   '(a b)
-   'A
-   '(C)
-   '((A a B)
-     (A b D)
-     (B a C)
-     (B b ds)
-     (D a ds)
-     (D b C)
-     (C a C)
-     (C b C)
-     (ds a ds)
-     (ds b ds))))
 
 (define bad-or-dad
   (make-dfa '(Q0 Q1 Q2 Q3 Q4 Q5 Q6)

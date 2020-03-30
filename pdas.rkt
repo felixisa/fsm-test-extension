@@ -1,8 +1,8 @@
 #lang racket
 (require fsm)
-(provide P)
-(provide pda-wcw^r)
-(provide pda-numa=numb)
+(provide P
+         pda-wcw^r
+         pda-numa=numb)
 
 ;; valid input: aaabbb 
 (define P (make-ndpda '(S F)

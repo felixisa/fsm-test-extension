@@ -1,12 +1,8 @@
 #lang racket
-(require fsm)
-(require test-engine/racket-tests)
-(require "dfas.rkt")
-(require "ndfas.rkt")
-(require "pdas.rkt")
-(provide test-inputs)
-(provide new-inputs)
-(provide remove-EMP) 
+(require fsm test-engine/racket-tests "dfas.rkt" "ndfas.rkt" "pdas.rkt")
+(provide test-inputs
+         new-inputs
+         remove-EMP) 
 
 ; test-inputs: machine -> slist
 ; Purpose: To generate the least amount of input words that test every node of a machine  
