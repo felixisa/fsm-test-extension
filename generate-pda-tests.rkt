@@ -1,6 +1,7 @@
 #lang racket
 (require fsm)
 (require test-engine/racket-tests)
+(require "better-sm-test.rkt")
 
 ;; get-pda-rule: processed-list -> pda-rule
 ;; Purpose: Determins if the rule to be made should be empty or a real rule
@@ -55,42 +56,6 @@
        (list
         (list init-state (determin-consumed) (take* (determin-poped) init-stack))
         (list next-state (take* (determin-pushed) next-stack)))])))
-
-;; valid input: aaabbb 
-(define P (make-ndpda '(S F)
-                     '(a b)
-                     '(c)
-                     'S
-                     '(F)
-                     `(((S ,EMP ,EMP) (F ,EMP))
-                       ((F a ,EMP) (F (c)))
-                       ((F b (c)) (F ,EMP)))))
-
-; valid input: aabcbaa
-(define pda-wcw^r (make-ndpda '(S M N F)                  ;the states
-                              '(a b c)                    ;the alphabet
-                              '(a b)                      ;the stack alphabet
-                              'S                          ;the starting state
-                              '(F)                        ;the final state
-                              `(((S ,EMP ,EMP) (M ,EMP))  ;the transition relation
-                                ((M a ,EMP) (M (a)))
-                                ((M b ,EMP) (M (b)))
-                                ((M c ,EMP) (N ,EMP))
-                                ((N a (a)) (N ,EMP))
-                                ((N b (b)) (N ,EMP))
-                                ((N ,EMP ,EMP) (F ,EMP)))))
-
-(define pda-numa=numb (make-ndpda '(S M F)
-                                  '(a b)
-                                  '(a b)
-                                  'S
-                                  '(F)
-                                  `(((S ,EMP ,EMP) (M ,EMP))
-                                    ((M ,EMP ,EMP) (F ,EMP))
-                                    ((M a ,EMP) (M (a)))
-                                    ((M b ,EMP) (M (b)))
-                                    ((M a (b)) (M ,EMP))
-                                    ((M b (a)) (M ,EMP)))))
 
 
 (test)
