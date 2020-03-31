@@ -10,8 +10,8 @@
   (define l (map (lambda (i) (reverse (cdr (reverse (sm-showtransitions m i))))) tw))
   ; loi is a (listof (listof (consumed state)) 
   (define loi (cons (car l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
-                                          [j (map (lambda (i) (cadr i)) t)])
-                                 (list i j))) (cdr l))))
+                                                        [j (map (lambda (i) (cadr i)) t)])
+                                               (list i j))) (cdr l))))
   
   ; helper1: (listof (listof transitions)) (listof (listof transitions)) -> boolean or (listof (listof transitions))
   ; Purpose: Traverses a list of lists of transitions and returns true if all invariant held orreturns failed,
@@ -23,35 +23,34 @@
     ;          returning #t if it holds and #f otherwise 
     (define (helper2 L losp)
       (cond [(null? L) #t]
-            [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))) #f]
+            [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
+             (list (cadar L) (caar L))]
             [else (helper2 (cdr L) losp)]))
     
     (cond [(and (null? l)
                 (null? failed)) #t]
           [(and (null? l)
-                (not (null? failed))) failed]
-          [(helper2 (car l) losp) (helper1 (cdr l) failed)]
-          [else (helper1 (cdr l) (cons (car l) failed))]))
+                (not (null? failed))) (foldl (lambda (i s) (displayln (format "~s-INV failed for ~s" (car i) (cadr i))))
+                                             (void) failed)]
+          [(boolean? (helper2 (car l) losp)) (helper1 (cdr l) failed)]
+          [else (helper1 (cdr l) (cons (helper2 (car l) losp) failed))]))
 
   (helper1 loi '()))
 
 
-(check-expect (INVS-HOLD (generate-dfa-tests TEST-MACHINE) TEST-MACHINE-losp TEST-MACHINE) #t)
-(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((() Q0)
-                                                                                       ((a) Q0)
-                                                                                       ((b a) Q0)
-                                                                                       ((b b) Q0))) 
-
+;(check-expect (INVS-HOLD (generate-dfa-tests TEST-MACHINE) TEST-MACHINE-losp TEST-MACHINE) #t)
+;(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))
+ ;                                                                                      (Q1 (b))))
 
 ;---------------------------------------------------------------
 
 ; EVEN-NUM-B INVARIANTS
-; CHANGED Q0 TO ODD 
+; CHANGED Q1 TO EVEN
 (define Q0-INV 
-  (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
+  (lambda (ci) (even? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
 (define Q1-INV
-  (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
+  (lambda (ci) (even? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
 (define EVEN-NUM-B-losp (list (list 'Q0 Q0-INV)
                               (list 'Q1 Q1-INV)))
@@ -117,7 +116,7 @@
 
 (define D-INV
   (lambda (ci) (or (and (= (length ci) 1)
-                        (equal? (car ci) 'b))
+                        (equal? (car ci) 'a)) ; CHANGED TO 'a FROM 'b
                    (and (= (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
                         (equal? (take-right ci 1) '(a))))))
 
