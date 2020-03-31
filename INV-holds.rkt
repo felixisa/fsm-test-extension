@@ -1,5 +1,5 @@
 #lang racket
-(require fsm test-engine/racket-tests "better-sm-test.rkt")
+(require fsm test-engine/racket-tests "better-sm-test.rkt" "dfas.rkt" "generate-dfa-tests.rkt")
 
 ; takes as input the list of test words, a (listof (state predicate)),
 ; and a machine and that returns true if for all words the predicates hold.
@@ -33,15 +33,14 @@
   (helper1 loi '()))
 
 
-
 ;---------------------------------------------------------------
 
 ; EVEN-NUM-B INVARIANTS 
 (define Q0-INV 
-  (lambda (ci) (even? (length (filter (λ (a) (eq? a 'b))))) ci))
+  (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
 (define Q1-INV
-  (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b))))) ci))
+  (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
 (define L1 (list (list 'Q0 Q0-INV)
                  (list 'Q1 Q1-INV)))

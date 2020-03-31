@@ -1,5 +1,6 @@
 #lang racket
 (require fsm test-engine/racket-tests "better-sm-test.rkt" "dfas.rkt")
+(provide generate-dfa-tests)
 
 ; generate-dfa-tests: dfa --> (listof word)
 ; Purpose: To generate the words needed to test every state of the given dfa
