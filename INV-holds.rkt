@@ -1,49 +1,60 @@
 #lang racket
 (require fsm test-engine/racket-tests "better-sm-test.rkt" "dfas.rkt" "generate-dfa-tests.rkt")
 
-; takes as input the list of test words, a (listof (state predicate)),
-; and a machine and that returns true if for all words the predicates hold.
-; Otherwise, it returns the strings and states for which a predicate fails.
+; INVS-HOLD: (listof test words) (listof (state predicate)) machine -> boolen or (list of (string state))
+; Purpose: returns true if for all words the predicates hold.
+;          Otherwise, it returns the strings and states for which a predicate fails.
 (define (INVS-HOLD tw losp m)
-  ; loi is a (listof (listof transitions)) with the accept or reject symbol removed
+  
+  ; l is a (listof (listof transitions)) with the accept or reject symbol removed
   (define l (map (lambda (i) (reverse (cdr (reverse (sm-showtransitions m i))))) tw))
-  (define loi (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
+  ; loi is a (listof (listof (consumed state)) 
+  (define loi (cons (car l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
                                           [j (map (lambda (i) (cadr i)) t)])
-                                 (list i j))) (cdr l)))
-  ; helper1: (listof (listof transitions)) (listof (listof transitions)) -> (listof (listof transitions))
-  ; Purpose: Traverses a list of lists of transitions and only returns failed,
+                                 (list i j))) (cdr l))))
+  
+  ; helper1: (listof (listof transitions)) (listof (listof transitions)) -> boolean or (listof (listof transitions))
+  ; Purpose: Traverses a list of lists of transitions and returns true if all invariant held orreturns failed,
   ;          which is the accumulated list of transitions in which an invariant failed to hold
   (define (helper1 l failed)
-           ; helper2: (listof transitions) (listof (state predicate)) -> boolean
-           ; Purpose: Traverses a list of transitions asking if, for each transition,
-           ;          the predicate indicated by the state in the transition holds for the string in the transition
-           ;          returning #t if it holds and #f otherwise 
-           (define (helper2 L losp)
-             (cond [(null? L) #t]
-                   [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))) #f]
-                   [else (helper2 (cdr L) losp)]))
+    ; helper2: (listof transitions) (listof (state predicate)) -> boolean
+    ; Purpose: Traverses a list of transitions asking if, for each transition,
+    ;          the predicate indicated by the state in the transition holds for the consumed input at that state
+    ;          returning #t if it holds and #f otherwise 
+    (define (helper2 L losp)
+      (cond [(null? L) #t]
+            [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L))) #f]
+            [else (helper2 (cdr L) losp)]))
     
-           (cond [(and (null? l)
-                       (null? failed)) #t]
-                 [(and (null? l)
-                       (not (null? failed))) failed]
-                 [(helper2 (car l) losp) (helper1 (cdr l) failed)]
-                 [else (helper1 (cdr l) (cons (car l) failed))]))
+    (cond [(and (null? l)
+                (null? failed)) #t]
+          [(and (null? l)
+                (not (null? failed))) failed]
+          [(helper2 (car l) losp) (helper1 (cdr l) failed)]
+          [else (helper1 (cdr l) (cons (car l) failed))]))
 
   (helper1 loi '()))
 
 
+(check-expect (INVS-HOLD (generate-dfa-tests TEST-MACHINE) TEST-MACHINE-losp TEST-MACHINE) #t)
+(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((() Q0)
+                                                                                       ((a) Q0)
+                                                                                       ((b a) Q0)
+                                                                                       ((b b) Q0))) 
+
+
 ;---------------------------------------------------------------
 
-; EVEN-NUM-B INVARIANTS 
+; EVEN-NUM-B INVARIANTS
+; CHANGED Q0 TO ODD 
 (define Q0-INV 
   (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
 (define Q1-INV
   (lambda (ci) (odd? (length (filter (λ (a) (eq? a 'b)) ci)))))
 
-(define L1 (list (list 'Q0 Q0-INV)
-                 (list 'Q1 Q1-INV)))
+(define EVEN-NUM-B-losp (list (list 'Q0 Q0-INV)
+                              (list 'Q1 Q1-INV)))
 
 ; e, a, ba, bb
 
@@ -110,10 +121,10 @@
                    (and (= (length (filter (lambda (i) (equal? i 'b)) ci)) 1)
                         (equal? (take-right ci 1) '(a))))))
 
-(define L2 (list (list 'A A-INV)
-                 (list 'B B-INV)
-                 (list 'C C-INV)
-                 (list 'D D-INV)))
+(define TEST-MACHINE-losp (list (list 'A A-INV)
+                                (list 'B B-INV)
+                                (list 'C C-INV)
+                                (list 'D D-INV)))
 
 ; '(() (a a) (b a) (b b) (a b a) (a b b))
 
