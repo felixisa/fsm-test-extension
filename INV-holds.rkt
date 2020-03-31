@@ -9,9 +9,9 @@
   ; l is a (listof (listof transitions)) with the accept or reject symbol removed
   (define l (map (lambda (i) (reverse (cdr (reverse (sm-showtransitions m i))))) tw))
   ; loi is a (listof (listof (consumed state)) 
-  (define loi (cons (car l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
+  (define loi (cons (only-empty l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
                                                         [j (map (lambda (i) (cadr i)) t)])
-                                               (list i j))) (cdr l))))
+                                               (list i j))) (all-but-empty l))))
   
   ; helper1: (listof (listof transitions)) (listof (listof transitions)) -> boolean or (listof (listof transitions))
   ; Purpose: Traverses a list of lists of transitions and returns true if all invariant held orreturns failed,
@@ -37,6 +37,11 @@
 
   (helper1 loi '()))
 
+
+(define (only-empty L)
+  (filter (lambda (i) (equal? (caaar i) '())) L))
+(define (all-but-empty L)
+  (filter (lambda (i) (not (equal? (caaar i) '()))) L))
 
 ;(check-expect (INVS-HOLD (generate-dfa-tests TEST-MACHINE) TEST-MACHINE-losp TEST-MACHINE) #t)
 ;(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))
