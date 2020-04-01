@@ -10,7 +10,8 @@
          ab*
          a*bb
          abUba
-         EVEN-NUM-B)
+         EVEN-NUM-B
+         NO-ABAA)
 
 (define TEST-MACHINE
   (make-dfa
@@ -201,3 +202,20 @@
               (Q0 b Q1)
               (Q1 a Q1)
               (Q1 b Q0))))
+
+(define NO-ABAA
+  (make-dfa 
+   '(Q-0 Q-1 Q-2 Q-3 Q-4)
+   '(a b) 
+   'Q-0
+   '(Q-0 Q-1 Q-2 Q-3)
+   '((Q-0 a Q-1)
+     (Q-0 b Q-0)
+     (Q-1 a Q-1)
+     (Q-1 b Q-2)
+     (Q-2 a Q-3 )
+     (Q-2 b Q-0)
+     (Q-3 a Q-4)
+     (Q-3 b Q-2)
+     (Q-4 a Q-4)
+     (Q-4 b Q-4))))

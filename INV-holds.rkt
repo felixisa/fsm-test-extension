@@ -1,17 +1,26 @@
 #lang racket
-(require fsm test-engine/racket-tests "better-sm-test.rkt" "dfas.rkt" "generate-dfa-tests.rkt")
+(require fsm
+         test-engine/racket-tests
+         "better-sm-test.rkt"
+         "dfas.rkt"
+         "generate-dfa-tests.rkt"
+         "ndfas.rkt"
+         "generate-ndfa-tests.rkt")
 
 ; INVS-HOLD: (listof test words) (listof (state predicate)) machine -> boolen or (list of (string state))
 ; Purpose: returns true if for all words the predicates hold.
 ;          Otherwise, it returns the strings and states for which a predicate fails.
 (define (INVS-HOLD tw losp m)
   
+  (define (only-empty L) (takef L (lambda (i) (null? (car i)))))
+  (define (all-but-empty L) (filter (lambda (i) (not (equal? (car i) '()))) L))
+  
   ; l is a (listof (listof transitions)) with the accept or reject symbol removed
   (define l (map (lambda (i) (reverse (cdr (reverse (sm-showtransitions m i))))) tw))
   ; loi is a (listof (listof (consumed state)) 
   (define loi (cons (only-empty l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
-                                                        [j (map (lambda (i) (cadr i)) t)])
-                                               (list i j))) (all-but-empty l))))
+                                                               [j (map (lambda (i) (cadr i)) t)])
+                                                      (list i j))) (all-but-empty l))))
   
   ; helper1: (listof (listof transitions)) (listof (listof transitions)) -> boolean or (listof (listof transitions))
   ; Purpose: Traverses a list of lists of transitions and returns true if all invariant held orreturns failed,
@@ -30,25 +39,72 @@
     (cond [(and (null? l)
                 (null? failed)) #t]
           [(and (null? l)
-                (not (null? failed))) (foldl (lambda (i s) (displayln (format "~s-INV failed for ~s" (car i) (cadr i))))
-                                             (void) failed)]
+                (not (null? failed))) failed]
           [(boolean? (helper2 (car l) losp)) (helper1 (cdr l) failed)]
           [else (helper1 (cdr l) (cons (helper2 (car l) losp) failed))]))
 
   (helper1 loi '()))
 
+; D-INV wrong
+(check-expect (INVS-HOLD '((a) (a a) (a b a) (b b b) (b a b a)) TEST-MACHINE-losp TEST-MACHINE)
+              '((D (b)) (D (b))))
 
-(define (only-empty L)
-  (filter (lambda (i) (equal? (caaar i) '())) L))
-(define (all-but-empty L)
-  (filter (lambda (i) (not (equal? (caaar i) '()))) L))
+; Q1-INV wrong 
+(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B)
+              '((Q1 (b)) (Q1 (b))))
 
-;(check-expect (INVS-HOLD (generate-dfa-tests TEST-MACHINE) TEST-MACHINE-losp TEST-MACHINE) #t)
-;(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))
- ;                                                                                      (Q1 (b))))
+; no wrong invs
+(check-expect (INVS-HOLD '((a b a) (a b a a) (a a a) (b)) NO-ABAA-losp NO-ABAA) #t)
+
+; ndfa
+(check-expect (INVS-HOLD (generate-ndfa-tests AT-LEAST-ONE-MISSING) AT-LEAST-ONE-MISSING-losp AT-LEAST-ONE-MISSING) #t)
 
 ;---------------------------------------------------------------
 
+(define A--INV null?)
+
+(define B--INV
+  (lambda (ci) (andmap (lambda (s) (not (eq? s 'b))) ci)))
+
+(define C--INV
+  (lambda (ci) (andmap (lambda (s) (not (eq? s 'a))) ci)))
+
+(define D--INV
+  (lambda (ci) (andmap (lambda (s) (not (eq? s 'c))) ci)))
+
+(define AT-LEAST-ONE-MISSING-losp (list (list 'A A--INV)
+                                        (list 'B B--INV)
+                                        (list 'C C--INV)
+                                        (list 'D D--INV)))
+
+;---------------------------------------------------------------
+
+(define (has? x w)
+  (if (< (length w) 4)
+      #f (or (equal? x (take w 4)) (has? x (rest w)))))
+
+(define Q-0-INV
+  (lambda (ci) (not (has? '(a b a a) ci))))
+
+(define Q-1-INV
+  (lambda (ci) (equal? (take-right ci 1) '(a))))
+
+(define Q-2-INV
+  (lambda (ci) (equal? (take-right ci 2) '(a b))))
+
+(define Q-3-INV
+  (lambda (ci) (equal? (take-right ci 3) '(a b a))))
+
+(define Q-4-INV
+  (lambda (ci) (equal? (take-right ci 4) '(a b a a))))
+
+(define NO-ABAA-losp (list (list 'Q-0 Q-0-INV)
+                           (list 'Q-1 Q-1-INV)
+                           (list 'Q-2 Q-2-INV)
+                           (list 'Q-3 Q-3-INV)
+                           (list 'Q-4 Q-4-INV)))
+
+;---------------------------------------------------------------
 ; EVEN-NUM-B INVARIANTS
 ; CHANGED Q1 TO EVEN
 (define Q0-INV 
