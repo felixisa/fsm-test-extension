@@ -7,7 +7,7 @@
          "ndfas.rkt"
          "generate-ndfa-tests.rkt")
 
-; INVS-HOLD: (listof test words) (listof (state predicate)) machine -> boolen or (list of (string state))
+; INVS-HOLD: (listof test words) (listof (state predicate)) machine -> boolean or (list of (string state))
 ; Purpose: returns true if for all words the predicates hold.
 ;          Otherwise, it returns the strings and states for which a predicate fails.
 (define (INVS-HOLD tw losp m)
@@ -39,7 +39,7 @@
     (cond [(and (null? l)
                 (null? failed)) #t]
           [(and (null? l)
-                (not (null? failed))) failed]
+                (not (null? failed))) (remove-duplicates failed)]
           [(boolean? (helper2 (car l) losp)) (helper1 (cdr l) failed)]
           [else (helper1 (cdr l) (cons (helper2 (car l) losp) failed))]))
 
@@ -47,11 +47,11 @@
 
 ; D-INV wrong
 (check-expect (INVS-HOLD '((a) (a a) (a b a) (b b b) (b a b a)) TEST-MACHINE-losp TEST-MACHINE)
-              '((D (b)) (D (b))))
+              '((D (b))))
 
 ; Q1-INV wrong 
 (check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B)
-              '((Q1 (b)) (Q1 (b))))
+              '((Q1 (b))))
 
 ; no wrong invs
 (check-expect (INVS-HOLD '((a b a) (a b a a) (a a a) (b)) NO-ABAA-losp NO-ABAA) #t)
@@ -64,13 +64,13 @@
 (define A--INV null?)
 
 (define B--INV
-  (lambda (ci) (andmap (lambda (s) (not (eq? s 'b))) ci)))
+  (lambda (ci) (andmap (lambda (s) (eq? s 'b)) ci)))
 
 (define C--INV
-  (lambda (ci) (andmap (lambda (s) (not (eq? s 'a))) ci)))
+  (lambda (ci) (andmap (lambda (s) (eq? s 'a)) ci)))
 
 (define D--INV
-  (lambda (ci) (andmap (lambda (s) (not (eq? s 'c))) ci)))
+  (lambda (ci) (andmap (lambda (s) (eq? s 'c)) ci)))
 
 (define AT-LEAST-ONE-MISSING-losp (list (list 'A A--INV)
                                         (list 'B B--INV)

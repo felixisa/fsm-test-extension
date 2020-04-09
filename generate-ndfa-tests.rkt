@@ -5,8 +5,9 @@
 ; generate-ndfa-tests: ndfa --> (listof word)
 ; Purpose: To generate the words needed to test every state of the given dfa
 (define (generate-ndfa-tests ndfa)
-  (remove-EMP (new-inputs (test-inputs ndfa))))
+  (new-inputs (test-inputs (ndfa->dfa ndfa))))
 
+#|
 (check-expect (generate-ndfa-tests KLEENESTAR-abUaba)
               '(() (a b) (a b a)))
 (check-expect (generate-ndfa-tests AT-LEAST-ONE-MISSING)
@@ -15,6 +16,6 @@
               '(() (a)))
 (check-expect (generate-ndfa-tests B)
               '(() (b)))
-
+|#
 
 (test) 
