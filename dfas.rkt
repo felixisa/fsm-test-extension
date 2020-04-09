@@ -1,5 +1,6 @@
 #lang racket
 (require fsm test-engine/racket-tests)
+
 (provide TEST-MACHINE
          a-bc*-d
          STATES
@@ -11,7 +12,32 @@
          a*bb
          abUba
          EVEN-NUM-B
-         NO-ABAA)
+         NO-ABAA
+         ONE-MISSING)
+
+(define ONE-MISSING
+  (make-dfa '(S A B C D E F)
+            '(a b c)
+            'S
+            '(S A B C D E F)
+            '((S a A)   ;;(S ,EMP S)??
+              (S b B)
+              (S c C)
+              (A a A)
+              (A b D)
+              (A c E)
+              (B a D)
+              (B b B)
+              (B c F)
+              (C a E)
+              (C b F)
+              (C c C)
+              (D a D)
+              (D b D)
+              (E a E)
+              (E c E)
+              (F b F)
+              (F c F))))
 
 (define TEST-MACHINE
   (make-dfa
