@@ -7,6 +7,7 @@
 (define (generate-dfa-tests dfa)
   (new-inputs (test-inputs dfa)))
 
+
 (check-expect (generate-dfa-tests TEST-MACHINE)
               '(() (a a) (b a) (b b) (a b a) (a b b)))
 (check-expect (generate-dfa-tests a-bc*-d)
@@ -16,5 +17,8 @@
 (check-expect (generate-dfa-tests ALPHA)
               '(() (a) (b) (c a) (c b) (c c a) (c c b) (c c c)))
 
+(define (sm-test-dfa m)
+  (define inputs (generate-dfa-tests m))
+  (map (lambda (x) (list x (sm-apply m x))) inputs))
 
 (test)

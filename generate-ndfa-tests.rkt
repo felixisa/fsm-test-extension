@@ -7,15 +7,8 @@
 (define (generate-ndfa-tests ndfa)
   (new-inputs (test-inputs (ndfa->dfa ndfa))))
 
-#|
-(check-expect (generate-ndfa-tests KLEENESTAR-abUaba)
-              '(() (a b) (a b a)))
-(check-expect (generate-ndfa-tests AT-LEAST-ONE-MISSING)
-              '(() (c) (a) (b)))
-(check-expect (generate-ndfa-tests A)
-              '(() (a)))
-(check-expect (generate-ndfa-tests B)
-              '(() (b)))
-|#
+(define (sm-test-ndfa m)
+  (define inputs (generate-ndfa-tests m))
+  (map (lambda (x) (list x (sm-apply m x))) inputs))
 
 (test) 
