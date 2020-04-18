@@ -18,6 +18,8 @@
                (Q4 b Q5)
                (Q5 ,EMP Q0))))
 
+
+
 (define AT-LEAST-ONE-MISSING
   (make-ndfa '(A B C D)
              '(a b c)
@@ -40,9 +42,13 @@
              '(Q1)
              '((Q0 a Q1))))
 
+
 (define B
   (make-ndfa '(Q0 Q1)
              '(a b)
              'Q0
              '(Q1)
              '((Q0 b Q1))))
+
+
+

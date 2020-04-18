@@ -21,4 +21,29 @@
   (define inputs (generate-dfa-tests m))
   (map (lambda (x) (list x (sm-apply m x))) inputs))
 
+
+
+(define A*-dfa
+  (make-dfa '(S A B C)
+             '(a)
+             'S
+             '(B)
+             '((S a A)
+               (A a B)
+               (B a C)
+               (C a C))))
+
+(define AorB-dfa
+  (make-dfa '(S A B)
+            '(a b)
+            'S
+            '(A B)
+            '((S a A)
+              (S b B)
+              (A a A)
+              (B b B))))
+
+
+
+
 (test)
