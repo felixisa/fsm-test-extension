@@ -14,9 +14,11 @@
   
   (define (only-empty L) (takef L (lambda (i) (null? (car i)))))
   (define (all-but-empty L) (filter (lambda (i) (not (equal? (car i) '()))) L))
+
+  (define lot (filter (lambda (t) (not (symbol? t))) (map (lambda (i) (sm-showtransitions m i)) tw)))
   
   ; l is a (listof (listof transitions)) with the accept or reject symbol removed
-  (define l (map (lambda (i) (reverse (cdr (reverse (sm-showtransitions m i))))) tw))
+  (define l (map (lambda (i) (reverse (cdr (reverse i)))) lot))
   ; loi is a (listof (listof (consumed state)) 
   (define loi (cons (only-empty l) (map (lambda (t) (for/list ([i (map (lambda (i) (take (caar t) (- (length (caar t)) (length (car i))))) t)]
                                                                [j (map (lambda (i) (cadr i)) t)])
@@ -35,47 +37,35 @@
             [(not ((cadar (filter (lambda (i) (equal? (car i) (cadar L))) losp)) (caar L)))
              (list (cadar L) (caar L))]
             [else (helper2 (cdr L) losp)]))
+
+    ; display-failed: (listof transitions) -> (void)
+    ; Purpose to display all the transitions listed as errors
+    (define (display-failed L)
+      (foldl (lambda (i f) (displayln (format "~s INV failed for ~s" (car i) (cadr i)))) (void) L)) 
     
     (cond [(and (null? l)
                 (null? failed)) #t]
           [(and (null? l)
-                (not (null? failed))) (remove-duplicates failed)]
+                (not (null? failed))) ;(display-failed
+                                       (remove-duplicates failed)
+                                      ; )
+                                      ]
           [(boolean? (helper2 (car l) losp)) (helper1 (cdr l) failed)]
           [else (helper1 (cdr l) (cons (helper2 (car l) losp) failed))]))
 
   (helper1 loi '()))
 
 ; D-INV wrong
-(check-expect (INVS-HOLD '((a) (a a) (a b a) (b b b) (b a b a)) TEST-MACHINE-losp TEST-MACHINE)
-              '((D (b))))
+ (check-expect (INVS-HOLD '((a) (a a) (a b a) (b b b) (b a b a)) TEST-MACHINE-losp TEST-MACHINE) '((D (b))))
 
 ; Q1-INV wrong 
-(check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B)
-              '((Q1 (b))))
+ (check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))))
 
 ; no wrong invs
-(check-expect (INVS-HOLD '((a b a) (a b a a) (a a a) (b)) NO-ABAA-losp NO-ABAA) #t)
+ (check-expect (INVS-HOLD '((a b a) (a b a a) (a a a) (b)) NO-ABAA-losp NO-ABAA) #t)
 
 ; ndfa
-(check-expect (INVS-HOLD (generate-ndfa-tests AT-LEAST-ONE-MISSING) AT-LEAST-ONE-MISSING-losp AT-LEAST-ONE-MISSING) #t)
 
-;---------------------------------------------------------------
-
-(define A--INV null?)
-
-(define B--INV
-  (lambda (ci) (andmap (lambda (s) (eq? s 'b)) ci)))
-
-(define C--INV
-  (lambda (ci) (andmap (lambda (s) (eq? s 'a)) ci)))
-
-(define D--INV
-  (lambda (ci) (andmap (lambda (s) (eq? s 'c)) ci)))
-
-(define AT-LEAST-ONE-MISSING-losp (list (list 'A A--INV)
-                                        (list 'B B--INV)
-                                        (list 'C C--INV)
-                                        (list 'D D--INV)))
 
 ;---------------------------------------------------------------
 

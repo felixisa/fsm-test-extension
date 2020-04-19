@@ -1,6 +1,10 @@
 #lang racket
 (require fsm test-engine/racket-tests)
 
+(provide aa*Uab*
+         aa*Uab*-losp)
+         
+
 #|
 L = aa* U ab*
 
@@ -26,6 +30,11 @@ C: ci starts with a and then has 0 or more b's FINAL
 (define (C-INV ci)
   (and (eq? (car ci) 'a)
        (andmap (lambda (i) (eq? i 'b)) (cdr ci))))
+
+(define aa*Uab*-losp (list (list 'S S-INV)
+                           (list 'A A-INV)
+                           (list 'B B-INV)
+                           (list 'C C-INV))) 
 
 (define aa*Uab* (make-ndfa '(S A B C)
                            '(a b)
