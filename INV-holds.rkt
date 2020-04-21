@@ -15,6 +15,7 @@
   (define (only-empty L) (takef L (lambda (i) (null? (car i)))))
   (define (all-but-empty L) (filter (lambda (i) (not (equal? (car i) '()))) L))
 
+  ; removes 'reject symbol from list of showtransitions
   (define lot (filter (lambda (t) (not (symbol? t))) (map (lambda (i) (sm-showtransitions m i)) tw)))
   
   ; l is a (listof (listof transitions)) with the accept or reject symbol removed
