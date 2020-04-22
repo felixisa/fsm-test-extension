@@ -64,7 +64,7 @@ B: ci starts with a, has 0 or more a's and b's, and the last ci is b  [FINAL]
 
 ;(sm-visualize aa*Ua-ab*-b (list 'S S-INV) (list 'A A-INV) (list 'B B-INV))
 
-(sm-visualize aa*Ua-ab*-b2)
+;(sm-visualize aa*Ua-ab*-b2)
 #|
              a          b
 L = {S}   M = {A}       ds
@@ -88,8 +88,6 @@ FINAL STATES: '(A B)
 
 ;checks if the first of the ci is 'a and last of the ci is equal to 'b
 (define N-INV B-INV)
-
-
 
 (define DFA
   (make-dfa '(S A B)

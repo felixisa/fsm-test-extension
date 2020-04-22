@@ -7,29 +7,34 @@
 (define (generate-ndfa-tests ndfa)
   (new-inputs (test-inputs (ndfa->dfa ndfa))))
 
+(check-expect (generate-ndfa-tests B) '(() (a a) (a b) (b a) (b b)))
+(check-expect (generate-ndfa-tests A) '(() (a a) (a b) (b a) (b b)))
+(check-expect (generate-ndfa-tests A*) '(() (a a a)))
+(check-expect (generate-ndfa-tests AorB) '(() (a a) (a b) (b a) (b b)))
+(check-expect (generate-ndfa-tests AT-LEAST-ONE-MISSING) '(()
+                                                           (a a)
+                                                           (b a)
+                                                           (b b)
+                                                           (c a)
+                                                           (c b)
+                                                           (c c)
+                                                           (a b a)
+                                                           (a b b)
+                                                           (a c a)
+                                                           (a c b)
+                                                           (a c c)
+                                                           (b c a)
+                                                           (b c b)
+                                                           (b c c)
+                                                           (a b c a)
+                                                           (a b c b)
+                                                           (a b c c)))
+(check-expect (generate-ndfa-tests KLEENESTAR-abUaba) '(() (a a) (b a) (b b) (a b b) (a b a a) (a b a b)))
+
+
 (define (sm-test-ndfa m)
   (define inputs (generate-ndfa-tests m))
   (map (lambda (x) (list x (sm-apply m x))) inputs))
 
-(define A*
-  (make-ndfa '(Q0 Q1 Q2 Q3)
-              '(a)
-              'Q0
-              '(Q1 Q3)
-              `((Q0 a Q1)
-                (Q1 ,EMP Q0)
-                (Q0 a Q2)
-                (Q2 a Q3)
-                (Q3 ,EMP Q0))))
-
-(define AorB
-  (make-ndfa '(Q0 Q1 Q2)
-             '(a b)
-             'Q0
-             '(Q1 Q2)
-             `((Q0 a Q1)
-               (Q1 ,EMP Q0)
-               (Q0 b Q2)
-               (Q2 ,EMP Q0))))
 
 (test) 
