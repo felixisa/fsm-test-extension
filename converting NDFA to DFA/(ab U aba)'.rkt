@@ -18,16 +18,19 @@ first is a AND last is b
 
 |#
 
+
 (define (contains? patt w)
   (and (>= (length w) (length patt))
        (or (equal? (take w (length patt)) patt)
            (contains? patt (rest w)))))
 
+;;; ci = (ab U aba)*
 (define Q0-INV
   (lambda (ci) (or (null? ci)
                    (contains? '(a b) ci)
-                   (contains? '(a b a) ci))))
+                   (contains? '(a b a) ci)))) ;; abbbbbbbba 
 
+;;;; ci = (ab U aba)*a
 (define (Q1-INV ci)
   (if (= (length ci) 1)
       (equal? ci '(a))
@@ -35,6 +38,7 @@ first is a AND last is b
            (equal? (take-right ci 1) '(a))
            (ormap (lambda (i) (equal? i 'b)) ci))))
 
+;;; ci = (ab U aba)*ab
 (define (Q2-INV ci)
   (and (equal? (take ci 1) '(a))
        (equal? (take-right ci 1) '(b))))
@@ -48,7 +52,8 @@ first is a AND last is b
              `((Q0 a Q1)
                (Q1 b Q0)
                (Q1 b Q2)
-               (Q2 a Q0))))
+               (Q2 a Q0))
+             'no-dead))
 
 (define abUaba*2
   (make-ndfa  '(Q0 Q1 Q2)
@@ -58,7 +63,8 @@ first is a AND last is b
               `((Q0 a Q1)
                 (Q1 b Q2)
                 (Q2 a Q0)
-                (Q2 ,EMP Q0))))
+                (Q2 ,EMP Q0))
+              'no-dead))
 
 (sm-testequiv? abUaba* abUaba*2)
 
@@ -80,7 +86,7 @@ S = {Q0}   A = {Q1}
 
 A                       B = {Q0, Q2} 
 
-B         C = {Q0, Q1}  S = {Q0}
+B         C = {Q0, Q1}  
 
 C           A              B
 
@@ -118,12 +124,11 @@ C           A              B
             '((S a A)
               (A b B)
               (B a C)
-              (B b S)
               (C a A)
               (C b B))))
 
-;(sm-testequiv? abUaba* DFA)                  ;;why are they returning that
-;(sm-testequiv? abUaba*2 DFA)
+(sm-testequiv? abUaba* DFA)                  ;;why are they returning that
+(sm-testequiv? abUaba*2 DFA)
 
 
 (check-expect (sm-apply DFA '()) 'accept)
