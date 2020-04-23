@@ -44,10 +44,11 @@ first is a AND last is b
 ; else false 
 
 (define (Q0-INV ci)
+  
   (define (helper ci accum)
     (cond [(empty? ci) #t]
           [(= (length ci) 1)
-           (if (equal? (take-right (append (take accum 2) ci) 3) '(a b a))
+           (if (equal? (append (take-right accum 2) ci) '(a b a))
                (helper (drop ci 1) (append accum (take ci 1)))
                #f)]
           [(equal? (take ci 2) '(a b))
@@ -55,8 +56,11 @@ first is a AND last is b
           [(equal? (take (append (take-right accum 2) ci) 3) '(a b a))
            (helper (drop ci 1) (append accum (take ci 1)))]
           [else #f]))
-  (and (> (length ci) 1)
-       (helper ci '())))
+  
+  (or (empty? ci)
+      (and (> (length ci) 1)
+           (helper ci '()))))
+
 
 
 (check-expect (Q0-INV '(a b)) #t)
@@ -82,7 +86,7 @@ first is a AND last is b
 
 ;;; ci = (ab U aba)*ab
 (define (Q2-INV ci)
-  (and (Q0-INV (drop-right ci 1))
+  (and (Q0-INV (drop-right ci 2))
        (equal? (take-right ci 2) '(a b))))
 
 
