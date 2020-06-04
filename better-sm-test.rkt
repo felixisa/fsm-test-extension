@@ -55,9 +55,7 @@
 ; remove-EMP: (listof inputs) -> (listof inputs)
 ; Purpose: To remove e from test inputs
 (define (remove-EMP loi)
-  (map (λ (x) (if (member 'e x) (remove 'e x) x)) loi))
+  (map (λ (x) (if (member 'ε x) (remove 'ε x) x)) loi))
 
-(check-expect (remove-EMP '(() (a e) (a b e))) '(() (a) (a b)))
-(check-expect (remove-EMP '(() (a) (b) (a b e))) '(() (a) (b) (a b)))
 
 (test)

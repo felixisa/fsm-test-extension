@@ -61,7 +61,7 @@
          (cons (car loi) (remove-bad (cdr loi) m))]
         [else (remove-bad (cdr loi) m)]))
 
-(check-expect (remove-bad '(() (c) (b b) (b c) (a c) (a a) (a b)) AT-LEAST-ONE-MISSING) '(() (b c) (a c) (a b)))
+;(check-expect (remove-bad '(() (c) (b b) (b c) (a c) (a a) (a b)) AT-LEAST-ONE-MISSING) '(() (b c) (a c) (a b)))
 
 
 
@@ -101,9 +101,11 @@
           [else (new-inputs (cdr loi))]))
   
   (remove-EMP
-   (remove-bad
-    (new-inputs (test-inputs m)))
+   ;(remove-bad
+    (new-inputs
+     (test-inputs m))
   )
+ ; )
   )
 
 (define detect-motif
@@ -130,11 +132,5 @@
                (Q8 a Q8)
                (Q9 g Q1))
              'no-dead))
-
- ; remove-EMP: (listof inputs) -> (listof inputs)
-  ; Purpose: To remove e from test inputs
-  (define (remove-EMP loi)
-    (map (λ (x) (if (member 'ε x) (remove 'ε x) x)) loi))
-
 
 (test)
