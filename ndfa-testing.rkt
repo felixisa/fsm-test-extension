@@ -73,28 +73,18 @@
                 ((S A E E) (a c c))
                 ((S B D D) (b a a))
                 ((S B D D) (b a b))
-                ((S B D ds) (b a c))
                 ((S B B D) (b b a))
                 ((S B B B) (b b b))
                 ((S B B F) (b b c))
                 ((S B F F) (b c b))
                 ((S B F F) (b c c))
-                ((S B F ds) (b c a))
                 ((S C E E) (c a a))
                 ((S C E E) (c a c))
-                ((S C E ds) (c a b))
                 ((S C F F) (c b b))
                 ((S C F F) (c b c))
-                ((S C F ds) (c b a))
                 ((S C C E) (c c a))
                 ((S C C F) (c c b))
-                ((S C C C) (c c c))
-                ((S A D ds ds) (a b c a))
-                ((S A D ds ds) (a b c b))
-                ((S A D ds ds) (a b c c))
-                ((S A E ds ds) (a c b a))
-                ((S A E ds ds) (a c b b))
-                ((S A E ds ds) (a c b c))))
+                ((S C C C) (c c c))))
 
 (check-expect (testing123 TEST-MACHINE)
               '(((A) ())
@@ -108,30 +98,11 @@
 
 (check-expect (testing123 a-bc*-d)
               '(((Q0) ())
-                ((Q0 ds) (d))
                 ((Q0 Q1 Q1) (a c))
-                ((Q0 Q1 ds) (a a))
-                ((Q0 ds ds) (b a))
-                ((Q0 ds ds) (b b))
-                ((Q0 ds ds) (b c))
-                ((Q0 ds ds) (b d))
-                ((Q0 ds ds) (c a))
-                ((Q0 ds ds) (c b))
-                ((Q0 ds ds) (c c))
-                ((Q0 ds ds) (c d))
+                ((Q0 Q1 Q2) (a d))
                 ((Q0 Q1 Q1 Q1) (a b b))
                 ((Q0 Q1 Q1 Q1) (a b c))
-                ((Q0 Q1 Q1 ds) (a b a))
-                ((Q0 Q1 Q2 ds) (a d a))
-                ((Q0 Q1 Q2 ds) (a d b))
-                ((Q0 Q1 Q2 ds) (a d c))
-                ((Q0 Q1 Q2 ds) (a d d))
-                ((Q0 Q1 Q1 Q2 ds) (a b d a))
-                ((Q0 Q1 Q1 Q2 ds) (a b d b))
-                ((Q0 Q1 Q1 Q2 ds) (a b d c))
-                ((Q0 Q1 Q1 Q2 ds) (a b d d))))
-
-
+                ((Q0 Q1 Q1 Q2) (a b d))))
 
 (check-expect (testing123 STATES)
               '(((A) ())
@@ -141,12 +112,10 @@
                 ((A D D D) (b a a))
                 ((A D E E) (b b a))
                 ((A D E C) (b b b))
-                ((A B C C C) (a a a a))
+                ((A B C C C) (a a a a)) ;;
                 ((A B C C C) (a a a b))
-                ((A D D E E) (b a b a)) ; ;
+                ((A D D E E) (b a b a)) 
                 ((A D D E C) (b a b b))))
-;(sm-graph STATES)
-
 
 
 (check-expect (testing123 KLEENESTAR-abUaba)
@@ -160,5 +129,9 @@
                 ((A C C C) (ε a c))
                 ((A D D D) (ε a a))
                 ((A D D D) (ε a b))))
+
+(check-expect (testing123 AorB)
+              '(((Q0) ()) ((Q0 Q1 Q0) (a ε)) ((Q0 Q2 Q0) (b ε))))
+
 
 (test)
