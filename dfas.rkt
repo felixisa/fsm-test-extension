@@ -52,7 +52,8 @@
      (D a D)
      (D b C)
      (C a C)
-     (C b C))))
+     (C b C))
+   'nodead))
 
 (define a-bc*-d
   (make-dfa '(Q0 Q1 Q2)

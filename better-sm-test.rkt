@@ -58,4 +58,47 @@
   (map (λ (x) (if (member 'ε x) (remove 'ε x) x)) loi))
 
 
+
+(define (test-input m)
+
+  ; find-all-trans: state -> (listof rules) 
+  ; Purpose: To find all transitions from the given current state
+  (define (find-all-trans st)
+    (filter (lambda (x) (equal? st (car x))) (sm-getrules m)))
+    
+  ; helper: test-words expanded-transitions unfinished-words expanded-states
+  ; Purpose: To generate the least amount of input words that test every edge of a machine 
+  (define (helper t-words e-trans u-words e-states)
+
+    ; new-u-words: slist -> slist
+    ; Purpose: To update u-words accumulator
+    (define (new-u-words u-words)
+      (cond [(member (caar u-words) e-states) (cdr u-words)]
+            [else (map (lambda (rule) (list (caddr rule)
+                                            (append (cadar u-words) (list (cadr rule)))))
+                       (find-all-trans (caar u-words)))]))
+    
+    ; new-e-states: (listof state) -> (listof state)
+    ; Purpose: To update e-states accumulator
+    (define (new-e-states st)
+
+      ; are-these-in-there?: list list -> boolean
+      ; Purpose: Determines if all the contents of L1 are in L2 
+      (define (are-these-in-there? L1 L2)
+        (andmap (lambda (i) (not (false? (member i L2)))) L1))
+
+      (if (are-these-in-there? (find-all-trans st) e-trans)
+          (cons st e-states)
+          e-states))
+    
+    (cond [(null? u-words) t-words]
+          [(member (caar u-words) e-states) (helper (cons (car u-words) t-words) e-trans (cdr u-words) e-states)]
+          [else (helper (cons (car u-words) t-words)
+                        (append (find-all-trans (caar u-words)) e-trans)
+                        (append (cdr u-words) (new-u-words u-words))
+                        (new-e-states (caar u-words)))]))
+
+  (reverse (helper '() (find-all-trans (sm-getstart m)) (list (list (sm-getstart m) '())) '())))
+
+
 (test)
