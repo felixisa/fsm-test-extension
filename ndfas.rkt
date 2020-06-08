@@ -5,7 +5,8 @@
          A
          B
          A*
-         AorB)
+         AorB
+         detect-motif)
 
 (define KLEENESTAR-abUaba
   (make-ndfa '(Q0 Q1 Q2 Q3 Q4 Q5)
@@ -72,3 +73,29 @@
                (Q1 ,EMP Q0)
                (Q0 b Q2)
                (Q2 ,EMP Q0))))
+
+(define detect-motif
+  (make-ndfa '(Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 Q9)
+             '(a d g f k m n q s t)
+             'Q0
+             '(Q8)
+             `((Q0 ,EMP Q1)
+               (Q0 m Q2)
+               (Q1 g Q2)
+               (Q1 f Q1)
+               (Q2 a Q3)
+               (Q2 ,EMP Q3)
+               (Q3 d Q4)
+               (Q4 t Q5)
+               (Q4 t Q4)
+               (Q5 a Q6)
+               (Q6 a Q7)
+               (Q7 m Q8)
+               (Q7 n Q8)
+               (Q7 q Q8)
+               (Q8 k Q9)
+               (Q8 s Q9)
+               (Q8 t Q9)
+               (Q9 a Q9)
+               )
+             'no-dead))
