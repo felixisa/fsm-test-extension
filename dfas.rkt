@@ -20,7 +20,7 @@
             '(a b c)
             'S
             '(S A B C D E F)
-            '((S a A)   ;;(S ,EMP S)??
+            '((S a A)  
               (S b B)
               (S c C)
               (A a A)
@@ -37,7 +37,8 @@
               (E a E)
               (E c E)
               (F b F)
-              (F c F))))
+              (F c F))
+            'nodead))
 
 (define TEST-MACHINE
   (make-dfa
@@ -63,7 +64,8 @@
             '((Q0 a Q1)
               (Q1 b Q1)
               (Q1 c Q1)
-              (Q1 d Q2))))
+              (Q1 d Q2))
+            'nodead))
 
 (define STATES
   (make-dfa
@@ -80,7 +82,8 @@
      (D a D)
      (D b E)
      (E a E)
-     (E b C))))
+     (E b C))
+   'nodead))
 
 (define ALPHA
   (make-dfa
@@ -96,7 +99,8 @@
      (B c C)
      (C a C)
      (C b C)
-     (C c C))))
+     (C c C))
+   'nodead))
 
 (define bad-or-dad
   (make-dfa '(Q0 Q1 Q2 Q3 Q4 Q5 Q6)
@@ -123,7 +127,8 @@
               (Q5 d Q6)
               (Q6 a Q6)
               (Q6 b Q6)
-              (Q6 d Q6))))
+              (Q6 d Q6))
+            'nodead))
 
 (define b*aab
   (make-dfa
@@ -158,7 +163,8 @@
      (Q3 a Q1)
      (Q3 b Q4)
      (Q4 a Q4)
-     (Q4 b Q4))))
+     (Q4 b Q4))
+   'nodead))
 
 
 (define ab*
@@ -192,7 +198,8 @@
      (Q3 a Q1)
      (Q3 b Q2)
      (Q4 a Q2)
-     (Q4 b Q3))))
+     (Q4 b Q3))
+   'nodead))
 
 
 (define abUba
@@ -218,7 +225,8 @@
      (Q7 a Q7)
      (Q7 b Q8)
      (Q8 a Q8)
-     (Q8 b Q8))))
+     (Q8 b Q8))
+   'nodead))
 
 (define EVEN-NUM-B
   (make-dfa '(Q0 Q1)
@@ -228,7 +236,8 @@
             '((Q0 a Q0)
               (Q0 b Q1)
               (Q1 a Q1)
-              (Q1 b Q0))))
+              (Q1 b Q0))
+            'nodead))
 
 (define NO-ABAA
   (make-dfa 
@@ -245,4 +254,6 @@
      (Q-3 a Q-4)
      (Q-3 b Q-2)
      (Q-4 a Q-4)
-     (Q-4 b Q-4))))
+     (Q-4 b Q-4))
+   'nodead))
+
