@@ -1,11 +1,7 @@
 #lang racket
 (require fsm
          test-engine/racket-tests
-         "better-sm-test.rkt"
-         "dfas.rkt"
-         "generate-dfa-tests.rkt"
-         "ndfas.rkt"
-         "generate-ndfa-tests.rkt")
+         "dfas.rkt")
 
 ; INVS-HOLD: (listof test words) (listof (state predicate)) machine -> boolean or (list of (string state))
 ; Purpose: returns true if for all words the predicates hold.
@@ -60,12 +56,10 @@
  (check-expect (INVS-HOLD '((a) (a a) (a b a) (b b b) (b a b a)) TEST-MACHINE-losp TEST-MACHINE) '((D (b))))
 
 ; Q1-INV wrong 
- (check-expect (INVS-HOLD (generate-dfa-tests EVEN-NUM-B) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))))
+ (check-expect (INVS-HOLD '(() (b) (b b b) (b)) EVEN-NUM-B-losp EVEN-NUM-B) '((Q1 (b))))
 
 ; no wrong invs
  (check-expect (INVS-HOLD '((a b a) (a b a a) (a a a) (b)) NO-ABAA-losp NO-ABAA) #t)
-
-; ndfa
 
 
 ;---------------------------------------------------------------

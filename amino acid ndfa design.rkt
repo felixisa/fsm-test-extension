@@ -91,12 +91,6 @@ Q9: ci=f*
        (Q6-INV (drop-right ci 1))
        (not (empty? (member (last ci) '(m n q))))))
 
-; symbol -> boolean
-(define (kUsUt? w)
-  (or (eq? w 'k)
-      (eq? w 's)
-      (eq? w 't)))
-
 ; word -> boolean
 (define (Q8-INV ci)
   (and (>= (length ci) 7)
