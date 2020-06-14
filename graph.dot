@@ -1,12 +1,18 @@
 digraph G {
     rankdir="LR";
-    C [label="C", shape="doublecircle", color="black"];
-    B [label="B", shape="circle", color="black"];
-    A [label="A", shape="doublecircle", color="black"];
-    S [label="S", shape="circle", color="forestgreen"];
-    C -> C [label="b", fontsize=15];
-    B -> C [label="ε", fontsize=15];
-    A -> A [label="a", fontsize=15];
-    S -> B [label="a", fontsize=15];
-    S -> A [label="a", fontsize=15];
+    Q4 [label="Q-4", shape="circle", color="black"];
+    Q3 [label="Q-3", shape="doublecircle", color="black"];
+    Q2 [label="Q-2", shape="doublecircle", color="black"];
+    Q1 [label="Q-1", shape="doublecircle", color="black"];
+    Q0 [label="Q-0", shape="doublecircle", color="forestgreen"];
+    Q4 -> Q4 [label="b", fontsize=15];
+    Q4 -> Q4 [label="a", fontsize=15];
+    Q3 -> Q2 [label="b", fontsize=15];
+    Q3 -> Q4 [label="a", fontsize=15];
+    Q2 -> Q0 [label="b", fontsize=15];
+    Q2 -> Q3 [label="a", fontsize=15];
+    Q1 -> Q2 [label="b", fontsize=15];
+    Q1 -> Q1 [label="a", fontsize=15];
+    Q0 -> Q0 [label="b", fontsize=15];
+    Q0 -> Q1 [label="a", fontsize=15];
 }
