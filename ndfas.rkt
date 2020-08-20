@@ -75,6 +75,8 @@
                (Q0 b Q2)
                (Q2 ,EMP Q0))))
 
+; (((f*g) U m) U ((f*g) U m)a)dt^+aa(m U n U q)(k U s U t)a*
+
 (define detect-motif
   (make-ndfa '(Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 Q9)
              '(a d g f k m n q s t)
